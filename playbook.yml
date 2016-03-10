@@ -1,0 +1,31 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  sudo: no
+  vars:
+    homebrew_packages_taps:
+      - caskroom/versions
+
+    homebrew_cask_packages_packages:
+      - iterm2
+
+  pre_tasks:
+    - name: 'oh-my-zsh: get status'
+      register: oh_my_zsh
+      stat: path=~/.oh-my-zsh/
+    - name: 'oh-my-zsh: install'
+      shell: curl -L http://install.ohmyz.sh | sh
+      when: oh_my_zsh.stat.exists == false
+
+  roles:
+    - hnakamur.homebrew-packages
+    - hnakamur.homebrew-cask-packages
+
+  tasks:
+    - name: copy .zshrc
+      copy: src=./src/.zshrc dest=~/.zshrc
+    - name: reload .zshrc
+      shell: /bin/bash -lc "source ~/.zshrc"
+      when: ruby_installed|failed
+
